@@ -22,6 +22,15 @@
     <button class="big" data-go="practice">Üben gegen Computer</button>
     <button class="big ghost" data-go="settings">Einstellungen</button>
   </div>
+  <!-- erscheint nur, wenn V-Pong im Browser statt als App läuft -->
+  <div class="install" id="installCard" hidden>
+    <strong>Als App installieren</strong>
+    <p id="installText"></p>
+    <div class="row">
+      <button class="primary" id="installBtn" hidden>Installieren</button>
+      <button class="ghost" id="installLater">Später</button>
+    </div>
+  </div>
   <p class="foot" id="version"></p>
 </section>
 
@@ -66,6 +75,7 @@
     <label class="check"><input type="checkbox" id="sSound"> Ton</label>
     <label class="check"><input type="checkbox" id="sVibrate"> Vibration (Handy)</label>
     <label class="check"><input type="checkbox" id="sPing"> Ping anzeigen</label>
+    <label class="check"><input type="checkbox" id="sInstall"> Hinweis «Als App installieren» zeigen</label>
   </div>
   <div class="stack"><button class="big primary" data-go="menu">Fertig</button></div>
 </section>

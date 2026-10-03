@@ -33,6 +33,23 @@ with sync_playwright() as pw:
     p.click('text=Einstellungen'); p.fill('#sName', 'Testerin'); p.click('text=Fertig')
     p.reload(); check(p.evaluate("JSON.parse(localStorage.getItem('vpong-settings')).name") == 'Testerin', 'Einstellungen bleiben nach Neuladen')
 
+    # --- Hinweis «Als App installieren» ---
+    p = page(); p.goto(URL); p.wait_for_selector('#menu:not([hidden])')
+    check(p.is_visible('#installCard') and p.is_hidden('#installBtn') and len(p.inner_text('#installText')) > 20,
+          f'im Browser: Installations-Hinweis mit Anleitung («{p.inner_text("#installText")[:45]}…»)')
+    p.evaluate("() => { window.__prompted = 0; const e = new Event('beforeinstallprompt', { cancelable: true }); e.prompt = () => { window.__prompted++; }; e.userChoice = Promise.resolve({ outcome: 'accepted' }); dispatchEvent(e); }")
+    check(p.is_visible('#installBtn'), 'Browser bietet Installation an: Knopf «Installieren» erscheint')
+    p.click('#installBtn'); p.wait_for_timeout(200)
+    check(p.evaluate('window.__prompted') == 1, '«Installieren» öffnet den Installations-Dialog des Browsers')
+    p.click('#installLater'); p.reload(); p.wait_for_selector('#menu:not([hidden])')
+    check(p.is_hidden('#installCard'), '«Später»: Hinweis bleibt auch nach Neuladen weg')
+    p.click('text=Einstellungen'); p.uncheck('#sInstall'); p.check('#sInstall'); p.click('text=Fertig')
+    check(p.is_visible('#installCard'), 'Einstellung «Hinweis zeigen» holt ihn zurück')
+    q = b.new_context(); q.add_init_script("""const mm = window.matchMedia.bind(window);
+        window.matchMedia = s => s.includes('display-mode: fullscreen') ? { matches: true, media: s, addEventListener() {}, removeEventListener() {} } : mm(s);""")
+    q = q.new_page(); q.goto(URL); q.wait_for_selector('#menu:not([hidden])')
+    check(q.is_hidden('#installCard'), 'als App gestartet: kein Hinweis')
+
     # --- Online: A erstellt, B tritt per Link bei ---
     A = page(); A.goto(URL); A.click('text=Spiel erstellen'); A.wait_for_function("/^\\d{4}$/.test(document.getElementById('lobbyCode').textContent)")
     A.wait_for_selector('text=Warte auf Gegner', timeout=10000)

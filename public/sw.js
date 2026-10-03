@@ -1,5 +1,5 @@
 // Network first (updates are live on the next start), cached copy when offline → practice mode works without internet.
-const CACHE = 'vpong-v2';
+const CACHE = 'vpong-v3';
 const CORE = ['./', './style.css', './app.js', './sim.js', './manifest.webmanifest', './icon-192.png', './icon-512.png', './icon-maskable-192.png', './icon-maskable-512.png'];
 self.addEventListener('install', e => { self.skipWaiting(); e.waitUntil(caches.open(CACHE).then(c => c.addAll(CORE))); });
 self.addEventListener('activate', e => e.waitUntil((async () => {

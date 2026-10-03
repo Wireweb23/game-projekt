@@ -17,5 +17,9 @@ Achtes Projekt im X-Connect-Ordner, Fun-Projekt des Nutzers (Deutsch, Schweizer 
    Üben gegen Computer, installierbar (PWA), Ping-Anzeige, Verteidiger entscheidet Treffer (Lag-Ausgleich). Tests:
    `tests/sim_test.mjs` (20 KI-Spiele, Determinismus, Lag-Ausgleich), `tests/test_game.py` (2 Browser, lokal + live grün).
    Gemessen Ping Heim-PC → Server 28–41 ms. **Noch nicht am Handy / mit dem Kollegen getestet.**
+   **0.1.1/0.1.2:** maskierbares App-Symbol (ohne `maskable` legt Android das Symbol auf Weiss – Nutzer sah weissen Rand;
+   App neu installieren, damit das Symbol wechselt); Hinweis «Als App installieren» im Menü, nur im Browser: mit
+   `beforeinstallprompt` ein Knopf, sonst Anleitung je Browser (iPhone/Samsung/Firefox/Chrome/Edge); «Später» = 3 Tage Ruhe,
+   Einstellung holt ihn zurück. Lokalen `wrangler dev` danach wirklich beenden (TaskStop liess workerd laufen).
 2. Ballformen (Kreis → Quadrat → Dreieck) mit Drehung und eckigem Abprall.
 3. Mehr Hindernisse, Feinschliff.

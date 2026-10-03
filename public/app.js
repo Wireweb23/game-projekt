@@ -1,19 +1,19 @@
 // V-Pong client: menu, settings, online play with prediction, practice vs. computer, rendering, sound.
 import { W, H, BALL_R, PAD_W, PAD_H, padY, obstacles, cloneState, advance, clampPad, Match } from './sim.js';
 
-const VERSION = '0.1.1';
+const VERSION = '0.1.2';
 const $ = id => document.getElementById(id);
 const COLORS = ['#ff4f7a', '#4fd2ff', '#5be3a1', '#ffc94f', '#b77bff', '#ff8a3d'];
 
 // ---------------- Settings ----------------
-const DEFAULTS = { name: '', color: COLORS[0], control: 'relativ', sens: 1.3, points: 7, sound: true, vibrate: true, ping: true };
+const DEFAULTS = { name: '', color: COLORS[0], control: 'relativ', sens: 1.3, points: 7, sound: true, vibrate: true, ping: true, installHint: true };
 let S = { ...DEFAULTS };
 try { S = { ...DEFAULTS, ...JSON.parse(localStorage.getItem('vpong-settings') || '{}') }; } catch {}
 const saveSettings = () => { try { localStorage.setItem('vpong-settings', JSON.stringify(S)); } catch {} };
 
 function settingsUI() {
   $('sName').value = S.name; $('sControl').value = S.control; $('sSens').value = S.sens; $('sPoints').value = S.points;
-  $('sSound').checked = S.sound; $('sVibrate').checked = S.vibrate; $('sPing').checked = S.ping;
+  $('sSound').checked = S.sound; $('sVibrate').checked = S.vibrate; $('sPing').checked = S.ping; $('sInstall').checked = S.installHint;
   const sw = $('sColor'); sw.innerHTML = '';
   for (const c of COLORS) {
     const b = document.createElement('button'); b.style.background = c; b.setAttribute('aria-label', 'Farbe ' + c);
@@ -29,6 +29,40 @@ $('sPoints').onchange = e => { S.points = +e.target.value; saveSettings(); };
 $('sSound').onchange = e => { S.sound = e.target.checked; saveSettings(); };
 $('sVibrate').onchange = e => { S.vibrate = e.target.checked; saveSettings(); };
 $('sPing').onchange = e => { S.ping = e.target.checked; saveSettings(); };
+$('sInstall').onchange = e => { S.installHint = e.target.checked; S.installLater = 0; saveSettings(); updateInstallCard(); };
+
+// ---------------- «Als App installieren» – only while running in the browser ----------------
+// Chrome/Edge/Samsung offer a real install dialog (beforeinstallprompt) → one button. iPhone/Firefox have none → short steps.
+let installEvent = null;
+const isInstalled = () => ['standalone', 'fullscreen', 'minimal-ui'].some(m => matchMedia(`(display-mode: ${m})`).matches) || navigator.standalone === true;
+function installSteps() {
+  const ua = navigator.userAgent;
+  if (/iPhone|iPad|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1))
+    return 'Unten auf «Teilen» tippen (Quadrat mit Pfeil nach oben) → «Zum Home-Bildschirm».';
+  if (/Android/.test(ua)) {
+    if (/SamsungBrowser/.test(ua)) return 'Menü ☰ unten rechts → «Seite hinzufügen zu» → «Startbildschirm».';
+    if (/Firefox/.test(ua)) return 'Menü ⋮ → «Installieren».';
+    return 'Menü ⋮ oben rechts → «App installieren» bzw. «Zum Startbildschirm hinzufügen».';
+  }
+  if (/Edg\//.test(ua)) return 'In der Adressleiste rechts auf das App-Symbol klicken → «Installieren».';
+  if (/Chrome\//.test(ua)) return 'In der Adressleiste rechts auf das Installieren-Symbol klicken.';
+  return 'Im Browser-Menü «App installieren» bzw. «Zum Startbildschirm» wählen.';
+}
+function updateInstallCard() {
+  const show = !isInstalled() && S.installHint && !(S.installLater > Date.now());
+  $('installCard').hidden = !show; if (!show) return;
+  $('installBtn').hidden = !installEvent;
+  $('installText').textContent = installEvent ? 'Startet im Vollbild mit eigenem Symbol, wie ein richtiges Spiel.' : installSteps();
+}
+addEventListener('beforeinstallprompt', e => { e.preventDefault(); installEvent = e; updateInstallCard(); });
+addEventListener('appinstalled', () => { installEvent = null; updateInstallCard(); });
+$('installBtn').onclick = async () => {
+  if (!installEvent) return;
+  installEvent.prompt();
+  try { await installEvent.userChoice; } catch {}
+  installEvent = null; updateInstallCard();
+};
+$('installLater').onclick = () => { S.installLater = Date.now() + 3 * 864e5; saveSettings(); updateInstallCard(); };   // 3 days quiet
 
 // ---------------- Screens ----------------
 const SCREENS = ['menu', 'lobby', 'join', 'settings', 'over'];
@@ -348,6 +382,7 @@ class Game {
 
 // ---------------- Start ----------------
 $('version').textContent = 'Version ' + VERSION;
+updateInstallCard();
 const raum = new URLSearchParams(location.search).get('raum');
 if (raum && /^\d{4}$/.test(raum)) { $('joinCode').value = raum; show('join'); joinGame(raum); } else show('menu');
 if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => {});
