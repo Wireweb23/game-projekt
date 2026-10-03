@@ -21,5 +21,10 @@ Achtes Projekt im X-Connect-Ordner, Fun-Projekt des Nutzers (Deutsch, Schweizer 
    App neu installieren, damit das Symbol wechselt); Hinweis «Als App installieren» im Menü, nur im Browser: mit
    `beforeinstallprompt` ein Knopf, sonst Anleitung je Browser (iPhone/Samsung/Firefox/Chrome/Edge); «Später» = 3 Tage Ruhe,
    Einstellung holt ihn zurück. Lokalen `wrangler dev` danach wirklich beenden (TaskStop liess workerd laufen).
+   **0.2.0 (Nutzer-Korrektur!):** gemeint war der **Schläger als V** (Öffnung zum Gegner), NICHT ein V-Hindernis in der Mitte –
+   ich hatte «eine art V» falsch gedeutet. Jetzt Spielregeln des Erstellers für beide: Schläger V/Strich (Standard V),
+   «Hindernis in der Mitte» an/aus (Standard aus), Punkte. V-Physik: echte Reflexion an den Innenwänden, ganze Passage durchs
+   V = EIN Kontakt (Entscheid beim Verlassen: vorwärts = Treffer, hinten raus = verpasst), `s.zone` im Zustand; Verteidiger-
+   Bericht + `missSkip` für Rückspulen. Tests: alle 4 Regel-Kombinationen, Doppel-Abpraller im V, Lag-Ausgleich beide Schläger.
 2. Ballformen (Kreis → Quadrat → Dreieck) mit Drehung und eckigem Abprall.
 3. Mehr Hindernisse, Feinschliff.

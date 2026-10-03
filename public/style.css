@@ -9,7 +9,7 @@ html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text);
 [hidden] { display: none !important; }
 canvas#field { position: fixed; inset: 0; width: 100%; height: 100%; touch-action: none; display: block; }
 
-.screen { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
+.screen { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: safe center;
   gap: 14px; padding: max(24px, env(safe-area-inset-top)) 20px max(24px, env(safe-area-inset-bottom));
   background: radial-gradient(120% 80% at 50% 20%, #1a2350 0%, var(--bg) 70%); z-index: 10; overflow-y: auto; }
 .screen.dim { background: rgba(11, 16, 32, .82); backdrop-filter: blur(3px); }
@@ -49,9 +49,12 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px s
 .install .row { display: flex; gap: 8px; margin-top: 4px; }
 .install button { padding: 9px 14px; border-radius: 10px; font-weight: 650; }
 
+.rules { border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px 12px; display: flex; flex-direction: column; gap: 12px; margin: 0; }
+.rules legend { color: var(--muted); font-size: 13px; padding: 0 6px; }
+
 #hud { position: fixed; inset: 0; pointer-events: none; z-index: 5; }
 #leaveBtn { pointer-events: auto; position: absolute; top: max(10px, env(safe-area-inset-top)); left: 10px; width: 40px; height: 40px;
   border-radius: 50%; background: rgba(20, 27, 51, .7); color: var(--muted); font-size: 18px; }
 #ping { position: absolute; top: max(18px, calc(env(safe-area-inset-top) + 8px)); right: 14px; font: 12px ui-monospace, Consolas, monospace; color: var(--muted); }
 #banner { position: absolute; left: 0; right: 0; top: 50%; transform: translateY(-50%); text-align: center; font-weight: 800;
-  font-size: 30px; text-shadow: 0 2px 12px #000; }
+  font-size: 30px; text-shadow: 0 2px 12px #000; white-space: pre-line; }

@@ -1,12 +1,12 @@
 // V-Pong client: menu, settings, online play with prediction, practice vs. computer, rendering, sound.
-import { W, H, BALL_R, PAD_W, PAD_H, padY, obstacles, cloneState, advance, clampPad, Match } from './sim.js';
+import { W, H, BALL_R, PAD_W, PAD_H, padY, obstacles, vArms, cloneState, advance, clampPad, missSkip, Match } from './sim.js';
 
-const VERSION = '0.1.2';
+const VERSION = '0.2.0';
 const $ = id => document.getElementById(id);
 const COLORS = ['#ff4f7a', '#4fd2ff', '#5be3a1', '#ffc94f', '#b77bff', '#ff8a3d'];
 
 // ---------------- Settings ----------------
-const DEFAULTS = { name: '', color: COLORS[0], control: 'relativ', sens: 1.3, points: 7, sound: true, vibrate: true, ping: true, installHint: true };
+const DEFAULTS = { name: '', color: COLORS[0], control: 'relativ', sens: 1.3, points: 7, sound: true, vibrate: true, ping: true, installHint: true, paddle: 'v', mitte: false };
 let S = { ...DEFAULTS };
 try { S = { ...DEFAULTS, ...JSON.parse(localStorage.getItem('vpong-settings') || '{}') }; } catch {}
 const saveSettings = () => { try { localStorage.setItem('vpong-settings', JSON.stringify(S)); } catch {} };
@@ -14,6 +14,7 @@ const saveSettings = () => { try { localStorage.setItem('vpong-settings', JSON.s
 function settingsUI() {
   $('sName').value = S.name; $('sControl').value = S.control; $('sSens').value = S.sens; $('sPoints').value = S.points;
   $('sSound').checked = S.sound; $('sVibrate').checked = S.vibrate; $('sPing').checked = S.ping; $('sInstall').checked = S.installHint;
+  $('sPaddle').value = S.paddle; $('sMitte').checked = S.mitte;
   const sw = $('sColor'); sw.innerHTML = '';
   for (const c of COLORS) {
     const b = document.createElement('button'); b.style.background = c; b.setAttribute('aria-label', 'Farbe ' + c);
@@ -29,6 +30,8 @@ $('sPoints').onchange = e => { S.points = +e.target.value; saveSettings(); };
 $('sSound').onchange = e => { S.sound = e.target.checked; saveSettings(); };
 $('sVibrate').onchange = e => { S.vibrate = e.target.checked; saveSettings(); };
 $('sPing').onchange = e => { S.ping = e.target.checked; saveSettings(); };
+$('sPaddle').onchange = e => { S.paddle = e.target.value; saveSettings(); };
+$('sMitte').onchange = e => { S.mitte = e.target.checked; saveSettings(); };
 $('sInstall').onchange = e => { S.installHint = e.target.checked; S.installLater = 0; saveSettings(); updateInstallCard(); };
 
 // ---------------- «Als App installieren» – only while running in the browser ----------------
@@ -91,10 +94,11 @@ $('shareBtn').onclick = async () => {
 };
 
 let game = null;
+const rulesText = (cfg, pts) => `${cfg.pad === 'v' ? 'V-Schläger' : 'Strich'} · ${cfg.mitte ? 'mit' : 'ohne'} Mitte · bis ${pts}`;
 function createGame() {
   game?.stop();
   const code = String(Math.floor(1000 + Math.random() * 9000));
-  $('lobbyCode').textContent = code; $('lobbyText').textContent = 'Verbinde …'; show('lobby');
+  $('lobbyCode').textContent = code; $('lobbyText').textContent = 'Verbinde …'; $('lobbyRules').textContent = rulesText({ pad: S.paddle, mitte: S.mitte }, S.points); show('lobby');
   game = new Game('online', { code, create: true });
 }
 function joinGame(code) {
@@ -142,7 +146,7 @@ class Game {
 
   // ----- practice vs. computer: the same Match class the server uses, run locally -----
   startPractice() {
-    this.m = new Match(S.points); this.m.hold = 0;
+    this.m = new Match(S.points, { pad: S.paddle, mitte: S.mitte }); this.m.hold = 0;
     this.m.onEvent = e => this.sound(e, 0); this.aiX = W / 2; this.aiNext = 0; this.aiTarget = W / 2;
     this.m.start(performance.now());
   }
@@ -163,7 +167,7 @@ class Game {
   connect() {
     const { code, create } = this.opt, proto = location.protocol === 'https:' ? 'wss' : 'ws';
     const token = sessionStorage.getItem('vpong-token-' + code) || '';
-    const q = new URLSearchParams({ raum: code, token, ...(create && !this.joined ? { create: '1', punkte: String(S.points) } : {}) });
+    const q = new URLSearchParams({ raum: code, token, ...(create && !this.joined ? { create: '1', punkte: String(S.points), schlaeger: S.paddle, mitte: S.mitte ? '1' : '0' } : {}) });
     const ws = this.ws = new WebSocket(`${proto}://${location.host}/ws?${q}`);
     ws.onopen = () => {
       this.send({ t: 'hello', name: S.name || (create ? 'Spieler 1' : 'Spieler 2'), color: S.color });
@@ -190,7 +194,7 @@ class Game {
       return;
     }
     if (m.t === 'joined') {
-      this.joined = true; this.me = m.side; sessionStorage.setItem('vpong-token-' + this.opt.code, m.token);
+      this.joined = true; this.me = m.side; this.rules = m; sessionStorage.setItem('vpong-token-' + this.opt.code, m.token);
       history.replaceState(null, '', `?raum=${this.opt.code}`);
       if (this.opt.create && m.side === 0 && !this.meta[1]) { $('lobbyText').textContent = 'Warte auf Gegner …'; show('lobby'); }
       else show(null);
@@ -210,8 +214,9 @@ class Game {
   base() {
     const b = cloneState(this.snap.s), o = this.override;
     if (o && this.snap.ack[this.me] < o.ct - 0.5) {
-      if (o.hit) { b.t = o.ct; b.ball = { ...o.ball }; b.phase = 'play'; }
-      else { b.t = o.ct; b.ball = { ...o.ballIn }; b.phase = 'play'; b.skip = o.ct; }
+      b.zone = [...b.zone]; b.zone[this.me] = null; b.phase = 'play';
+      if (o.hit) { b.t = o.ct; b.ball = { ...o.ball }; }
+      else { b.t = o.tin; b.ball = { ...o.ballIn }; b.skipFrom = o.tin; }   // my miss: replay without my paddle
     } else this.override = null;
     return b;
   }
@@ -222,7 +227,7 @@ class Game {
     return h.length ? h[0].x : this.myX;
   };
   predict(base, now, evs) {
-    const skip = base.skip != null ? (sd, t) => sd === this.me && Math.abs(t - base.skip) < 40 : null;
+    const skip = base.skipFrom != null ? missSkip(this.me, base.skipFrom) : null;
     return advance(base, now, this.padAtOnline, evs ? e => evs.push(e) : () => {}, skip);
   }
 
@@ -255,7 +260,7 @@ class Game {
       for (const e of evs) {
         if (e.type === 'contact' && e.side === this.me && Math.abs(e.t - this.reported) > 150) {
           this.reported = e.t;
-          this.override = { ct: e.t, hit: e.hit, ball: e.ball, ballIn: e.ballIn };
+          this.override = { ct: e.t, tin: e.tin, hit: e.hit, ball: e.ball, ballIn: e.ballIn };
           this.send({ t: 'c', ct: e.t, hit: e.hit, ball: e.ball });
         }
         if (e.t > this.lastSound && e.t <= now) this.sound(e, this.me);
@@ -273,7 +278,8 @@ class Game {
   sound(e, me) {
     if (e.type === 'wall') SOUND.wall();
     else if (e.type === 'obstacle') SOUND.obstacle();
-    else if (e.type === 'contact' && e.hit) { SOUND.hit(); if (e.side === me && S.vibrate) navigator.vibrate?.(15); }
+    // bar: one sound per hit; V: one per wall touched inside the V (the final contact comes when it leaves the V)
+    else if (e.type === 'paddle' || (e.type === 'contact' && e.hit && e.tin === e.t)) { SOUND.hit(); if (e.side === me && S.vibrate) navigator.vibrate?.(15); }
   }
   scoreSound(s) {
     const key = s.score.join(':');
@@ -294,7 +300,8 @@ class Game {
     if (!$('over').hidden) show(null);
     if (s.phase === 'wait') this.banner('Warte auf Gegner …');
     else if (s.phase === 'pause') this.banner(`${opp} ist weg – warte …`);
-    else if (s.phase === 'serve') this.banner(s.until - s.t > 1300 ? `gegen ${opp}` : '');
+    else if (s.phase === 'serve') this.banner(s.until - s.t > 1300 ? `gegen ${opp}
+${rulesText(s.cfg, this.mode === 'practice' ? S.points : this.rules?.points)}` : '');
     else this.banner('');
   }
   banner(text) { if ($('banner').textContent !== text) $('banner').textContent = text; }
@@ -357,14 +364,18 @@ class Game {
     if (flip) { ctx.translate(W, H); ctx.scale(-1, -1); }
     // the V
     ctx.lineCap = 'round'; ctx.strokeStyle = '#9d8cff'; ctx.shadowColor = '#7b68ff'; ctx.shadowBlur = 18;
-    for (const c of obstacles(s.open)) { ctx.lineWidth = c.r * 2; ctx.beginPath(); ctx.moveTo(c.ax, c.ay); ctx.lineTo(c.bx, c.by); ctx.stroke(); }
+    for (const c of obstacles(s)) { ctx.lineWidth = c.r * 2; ctx.beginPath(); ctx.moveTo(c.ax, c.ay); ctx.lineTo(c.bx, c.by); ctx.stroke(); }
     // paddles
     const myCol = S.color, oppCol = (this.mode === 'online' && this.meta[1 - this.me]?.color) || (myCol === COLORS[1] ? COLORS[0] : COLORS[1]);
     const pads = [];
     pads[this.me] = { x: this.myX, c: myCol }; pads[1 - this.me] = { x: this.oppX, c: oppCol };
     for (const side of [0, 1]) {
       ctx.fillStyle = pads[side].c; ctx.shadowColor = pads[side].c; ctx.shadowBlur = 16;
-      ctx.beginPath(); ctx.roundRect(pads[side].x - PAD_W / 2, padY(side) - PAD_H / 2, PAD_W, PAD_H, PAD_H / 2); ctx.fill();
+      if (s.cfg.pad === 'v') {
+        const [l, r] = vArms(side, pads[side].x);
+        ctx.strokeStyle = pads[side].c; ctx.lineWidth = l.r * 2; ctx.lineJoin = 'round';
+        ctx.beginPath(); ctx.moveTo(l.bx, l.by); ctx.lineTo(l.ax, l.ay); ctx.lineTo(r.bx, r.by); ctx.stroke();
+      } else { ctx.beginPath(); ctx.roundRect(pads[side].x - PAD_W / 2, padY(side) - PAD_H / 2, PAD_W, PAD_H, PAD_H / 2); ctx.fill(); }
     }
     // ball + trail
     const bx = s.ball.x + this.err.x, by = s.ball.y + this.err.y;

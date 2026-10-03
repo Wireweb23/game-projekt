@@ -39,6 +39,7 @@
   <h2>Raumcode</h2>
   <div class="code" id="lobbyCode">····</div>
   <p class="sub" id="lobbyText">Warte auf Gegner …</p>
+  <p class="sub" id="lobbyRules"></p>
   <div class="stack">
     <button class="big primary" id="shareBtn">Link senden</button>
     <button class="big ghost" data-go="menu">Abbrechen</button>
@@ -69,9 +70,16 @@
       </select>
     </label>
     <label>Empfindlichkeit <input type="range" id="sSens" min="0.5" max="2.5" step="0.1"></label>
-    <label>Punkte bis zum Sieg (als Ersteller)
-      <select id="sPoints"><option>5</option><option>7</option><option>11</option></select>
-    </label>
+    <fieldset class="rules">
+      <legend>Spielregeln – gelten für beide, wer das Spiel erstellt, bestimmt sie</legend>
+      <label>Schläger
+        <select id="sPaddle"><option value="v">V (Öffnung zum Gegner)</option><option value="strich">Strich (klassisch)</option></select>
+      </label>
+      <label class="check"><input type="checkbox" id="sMitte"> Hindernis in der Mitte</label>
+      <label>Punkte bis zum Sieg
+        <select id="sPoints"><option>5</option><option>7</option><option>11</option></select>
+      </label>
+    </fieldset>
     <label class="check"><input type="checkbox" id="sSound"> Ton</label>
     <label class="check"><input type="checkbox" id="sVibrate"> Vibration (Handy)</label>
     <label class="check"><input type="checkbox" id="sPing"> Ping anzeigen</label>

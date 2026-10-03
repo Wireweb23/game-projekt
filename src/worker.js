@@ -34,7 +34,8 @@ export class Room {
     if (create) {
       if (this.created) return fail('besetzt');
       this.reset(); this.created = true;
-      this.match = new Match([5, 7, 11].includes(+url.searchParams.get('punkte')) ? +url.searchParams.get('punkte') : 7);
+      const q = url.searchParams;   // rules chosen by the creator, the same for both players
+      this.match = new Match([5, 7, 11].includes(+q.get('punkte')) ? +q.get('punkte') : 7, { pad: q.get('schlaeger') === 'strich' ? 'strich' : 'v', mitte: q.get('mitte') === '1' });
       side = 0;
     } else {
       if (!this.created) return fail('unbekannt');
@@ -43,7 +44,7 @@ export class Room {
       if (side < 0) return fail('voll');
     }
     const p = this.players[side] = { ws, token: token || crypto.randomUUID(), name: 'Spieler ' + (side + 1), color: '' };
-    ws.send(JSON.stringify({ t: 'joined', side, token: p.token, points: this.match.points }));
+    ws.send(JSON.stringify({ t: 'joined', side, token: p.token, points: this.match.points, cfg: this.match.cfg }));
     ws.addEventListener('message', e => this.onMessage(side, ws, e.data));
     ws.addEventListener('close', () => this.onClose(side, ws));
     ws.addEventListener('error', () => this.onClose(side, ws));

@@ -1,6 +1,7 @@
 # V-Pong
 
-Kleines Online-Pong für zwei – mit einem **V** in der Mitte, an dem der Ball in schrägen Winkeln abprallt.
+Kleines Online-Pong für zwei – mit **V-Schlägern**: Der Ball fällt in die Innenwände und kommt in schrägen Winkeln zurück
+(wahlweise klassischer Strich, optional ein Hindernis in der Mitte – das bestimmt, wer das Spiel erstellt).
 Läuft im Browser und lässt sich auf Handy und PC als App installieren.
 
 **Spielen:** https://game-projekt.firewire23.workers.dev/ (öffentlich, kein Login)
@@ -14,7 +15,7 @@ Läuft im Browser und lässt sich auf Handy und PC als App installieren.
 
 | Teil | Datei | Aufgabe |
 |---|---|---|
-| Physik + Regeln | `public/sim.js` | feste Zeitschritte (120/s), Ball, Wände, V, Schläger, Aufschlag, Punkte. **Dieselbe Datei** läuft auf dem Server und im Browser. |
+| Physik + Regeln | `public/sim.js` | feste Zeitschritte (120/s), Ball, Wände, V- oder Strich-Schläger, Mittel-Hindernis, Aufschlag, Punkte. **Dieselbe Datei** läuft auf dem Server und im Browser. |
 | Spielserver | `src/worker.js` | Cloudflare Worker + Durable Object pro Raum (Code). Der Server ist Chef über Ball und Punkte, rechnet 60×/s und schickt 30×/s den Stand. |
 | Spiel im Browser | `public/app.js` | Menü, Einstellungen, Zeichnen, Steuerung, Ton, Computer-Gegner. |
 
