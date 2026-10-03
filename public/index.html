@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#0b1020">
+<title>V-Pong</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<canvas id="field"></canvas>
+
+<!-- Hauptmenü -->
+<section class="screen" id="menu">
+  <h1>V<span>-</span>Pong</h1>
+  <p class="sub">Pong mit Ecken und Kanten</p>
+  <div class="stack">
+    <button class="big primary" data-go="create">Spiel erstellen</button>
+    <button class="big" data-go="join">Beitreten</button>
+    <button class="big" data-go="practice">Üben gegen Computer</button>
+    <button class="big ghost" data-go="settings">Einstellungen</button>
+  </div>
+  <p class="foot" id="version"></p>
+</section>
+
+<!-- Warten auf Gegner -->
+<section class="screen" id="lobby" hidden>
+  <h2>Raumcode</h2>
+  <div class="code" id="lobbyCode">····</div>
+  <p class="sub" id="lobbyText">Warte auf Gegner …</p>
+  <div class="stack">
+    <button class="big primary" id="shareBtn">Link senden</button>
+    <button class="big ghost" data-go="menu">Abbrechen</button>
+  </div>
+</section>
+
+<!-- Beitreten -->
+<section class="screen" id="join" hidden>
+  <h2>Beitreten</h2>
+  <input id="joinCode" inputmode="numeric" maxlength="4" placeholder="1234" autocomplete="off">
+  <p class="sub err" id="joinErr"></p>
+  <div class="stack">
+    <button class="big primary" id="joinBtn">Los</button>
+    <button class="big ghost" data-go="menu">Zurück</button>
+  </div>
+</section>
+
+<!-- Einstellungen -->
+<section class="screen" id="settings" hidden>
+  <h2>Einstellungen</h2>
+  <div class="form">
+    <label>Name <input id="sName" maxlength="16"></label>
+    <div class="row"><span>Farbe</span><div class="swatches" id="sColor"></div></div>
+    <label>Steuerung
+      <select id="sControl">
+        <option value="relativ">Finger/Maus ziehen (relativ)</option>
+        <option value="absolut">Schläger folgt Finger/Maus</option>
+      </select>
+    </label>
+    <label>Empfindlichkeit <input type="range" id="sSens" min="0.5" max="2.5" step="0.1"></label>
+    <label>Punkte bis zum Sieg (als Ersteller)
+      <select id="sPoints"><option>5</option><option>7</option><option>11</option></select>
+    </label>
+    <label class="check"><input type="checkbox" id="sSound"> Ton</label>
+    <label class="check"><input type="checkbox" id="sVibrate"> Vibration (Handy)</label>
+    <label class="check"><input type="checkbox" id="sPing"> Ping anzeigen</label>
+  </div>
+  <div class="stack"><button class="big primary" data-go="menu">Fertig</button></div>
+</section>
+
+<!-- Spiel-Anzeige -->
+<div id="hud" hidden>
+  <button id="leaveBtn" aria-label="Spiel verlassen">✕</button>
+  <span id="ping"></span>
+  <div id="banner"></div>
+</div>
+
+<!-- Spielende -->
+<section class="screen dim" id="over" hidden>
+  <h2 id="overTitle">Gewonnen!</h2>
+  <p class="sub" id="overScore"></p>
+  <div class="stack">
+    <button class="big primary" id="againBtn">Revanche</button>
+    <button class="big ghost" id="overMenu">Menü</button>
+  </div>
+</section>
+
+<script type="module" src="app.js"></script>
+</body>
+</html>

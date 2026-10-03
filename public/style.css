@@ -1,0 +1,51 @@
+:root {
+  --bg: #0b1020; --panel: #141b33; --line: #26305a; --text: #e8ecff; --muted: #8d97c7;
+  --accent: #ff4f7a; --accent2: #4fd2ff; --ok: #5be3a1;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text); overflow: hidden;
+  font: 16px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; overscroll-behavior: none; }
+[hidden] { display: none !important; }
+canvas#field { position: fixed; inset: 0; width: 100%; height: 100%; touch-action: none; display: block; }
+
+.screen { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 14px; padding: max(24px, env(safe-area-inset-top)) 20px max(24px, env(safe-area-inset-bottom));
+  background: radial-gradient(120% 80% at 50% 20%, #1a2350 0%, var(--bg) 70%); z-index: 10; overflow-y: auto; }
+.screen.dim { background: rgba(11, 16, 32, .82); backdrop-filter: blur(3px); }
+h1 { font-size: clamp(56px, 16vw, 96px); margin: 0; letter-spacing: -2px; font-weight: 900;
+  background: linear-gradient(135deg, var(--accent), var(--accent2)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+h1 span { opacity: .5; }
+h2 { margin: 0; font-size: 28px; }
+.sub { margin: 0; color: var(--muted); text-align: center; }
+.sub.err { color: var(--accent); min-height: 1.4em; }
+.foot { position: absolute; bottom: max(10px, env(safe-area-inset-bottom)); margin: 0; color: var(--muted); font-size: 12px; }
+.stack { display: flex; flex-direction: column; gap: 10px; width: min(320px, 100%); margin-top: 8px; }
+button { font: inherit; color: inherit; cursor: pointer; border: 0; }
+button.big { padding: 15px 18px; border-radius: 14px; background: var(--panel); border: 1px solid var(--line); font-weight: 650; font-size: 17px; }
+button.big:active { transform: scale(.98); }
+button.primary { background: linear-gradient(135deg, var(--accent), #c93ad9); border-color: transparent; }
+button.ghost { background: transparent; }
+button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid var(--accent2); outline-offset: 2px; }
+
+.code { font: 800 64px/1 ui-monospace, Consolas, monospace; letter-spacing: 10px; color: var(--accent2); }
+#joinCode { font: 700 44px/1 ui-monospace, Consolas, monospace; letter-spacing: 10px; text-align: center; width: 220px;
+  padding: 10px; border-radius: 14px; border: 1px solid var(--line); background: var(--panel); color: var(--text); }
+
+.form { display: flex; flex-direction: column; gap: 14px; width: min(360px, 100%); }
+.form label, .form .row { display: flex; flex-direction: column; gap: 6px; color: var(--muted); font-size: 14px; }
+.form label.check { flex-direction: row; align-items: center; gap: 10px; color: var(--text); font-size: 16px; }
+.form input:not([type]), .form select { font: inherit; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line);
+  background: var(--panel); color: var(--text); }
+.form input[type=checkbox] { width: 22px; height: 22px; accent-color: var(--accent); }
+.form input[type=range] { accent-color: var(--accent); }
+.swatches { display: flex; gap: 10px; flex-wrap: wrap; }
+.swatches button { width: 36px; height: 36px; border-radius: 50%; border: 3px solid transparent; }
+.swatches button[aria-pressed=true] { border-color: var(--text); }
+
+#hud { position: fixed; inset: 0; pointer-events: none; z-index: 5; }
+#leaveBtn { pointer-events: auto; position: absolute; top: max(10px, env(safe-area-inset-top)); left: 10px; width: 40px; height: 40px;
+  border-radius: 50%; background: rgba(20, 27, 51, .7); color: var(--muted); font-size: 18px; }
+#ping { position: absolute; top: max(18px, calc(env(safe-area-inset-top) + 8px)); right: 14px; font: 12px ui-monospace, Consolas, monospace; color: var(--muted); }
+#banner { position: absolute; left: 0; right: 0; top: 50%; transform: translateY(-50%); text-align: center; font-weight: 800;
+  font-size: 30px; text-shadow: 0 2px 12px #000; }
