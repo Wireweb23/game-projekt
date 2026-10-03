@@ -1,7 +1,7 @@
 // V-Pong client: menu, settings, online play with prediction, practice vs. computer, rendering, sound.
 import { W, H, BALL_R, PAD_W, PAD_H, padY, obstacles, cloneState, advance, clampPad, Match } from './sim.js';
 
-const VERSION = '0.1.0';
+const VERSION = '0.1.1';
 const $ = id => document.getElementById(id);
 const COLORS = ['#ff4f7a', '#4fd2ff', '#5be3a1', '#ffc94f', '#b77bff', '#ff8a3d'];
 
